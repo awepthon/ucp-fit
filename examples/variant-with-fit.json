@@ -1,0 +1,21 @@
+{
+  "id": "var_sageston_40",
+  "title": "Sageston Sneaker, EU 40",
+  "description": "Example catalog variant carrying internal dimensions.",
+  "price": 129900,
+  "options": [{ "name": "Size", "value": "EU 40" }],
+  "fit": {
+    "internal_dimensions": {
+      "functional_length_mm": 257.0,
+      "ball_width_mm": 92.5,
+      "ball_girth_mm": 238.0,
+      "instep_girth_mm": 244.0,
+      "heel_width_mm": 63.0,
+      "toe_height_mm": 27.5,
+      "tolerance_mm": 2.0,
+      "source": "last_derived",
+      "vocabulary": "ISO 19409:2022 / ISO 19410-1:2022",
+      "last_reference": "last_7f3a"
+    }
+  }
+}

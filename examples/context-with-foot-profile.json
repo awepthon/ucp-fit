@@ -1,0 +1,12 @@
+{
+  "foot_profile": {
+    "feet": [
+      { "side": "left",  "length_mm": 251.0, "ball_width_mm": 94.0, "ball_girth_mm": 236.0, "instep_girth_mm": 241.0, "heel_width_mm": 62.0 },
+      { "side": "right", "length_mm": 254.5, "ball_width_mm": 95.0, "ball_girth_mm": 238.0, "instep_girth_mm": 243.0, "heel_width_mm": 62.5 }
+    ],
+    "measurement_method": "phone_scan",
+    "measured_at": "2026-10-20",
+    "tolerance_mm": 1.5,
+    "consent": true
+  }
+}

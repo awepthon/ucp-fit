@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fit Extension for UCP — VSIZE</title>
+<meta name="description" content="ai.vsize.shopping.fit: a draft vendor-namespace extension to the Universal Commerce Protocol that makes footwear fit a measurable property of a catalog variant.">
+<meta name="theme-color" content="#2B3A52">
+<link rel="icon" href="/vsize_favicon.ico" type="image/x-icon">
+
+<meta property="og:title" content="Fit Extension for UCP (draft)">
+<meta property="og:description" content="A UCP extension that makes footwear fit a measurable property of a catalog variant.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://vsize.ai/ucp/fit">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Jost:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/vsize.css">
+
+<style>
+/* ═══ ARTICLE ═══ */
+body { background: var(--limestone, #EBE8E2); font-family: var(--sans, 'Jost'), sans-serif; color: var(--indigo, #2B3A52); margin: 0; }
+
+.section-label {
+  font-family: var(--mono, 'IBM Plex Mono'), monospace;
+  font-size: 0.7rem; font-weight: 300; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--leather, #A8875A);
+  margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.7rem;
+}
+.section-label::before { content: ''; width: 28px; height: 1.5px; background: var(--leather, #A8875A); }
+
+/* ── NAV ── */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: rgba(235, 232, 226, 0.92); backdrop-filter: blur(10px);
+  z-index: 100; border-bottom: 1px solid rgba(209, 204, 195, 0.4);
+}
+.nav-inner {
+  max-width: 1300px; margin: 0 auto; padding: 1.1rem 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-family: var(--serif, 'Cormorant Garamond'), serif;
+  font-size: 1.4rem; font-weight: 400; letter-spacing: 0.18em;
+  color: var(--indigo, #2B3A52); text-decoration: none;
+}
+.nav-links {
+  display: flex; gap: 2rem; align-items: center;
+  font-family: var(--sans, 'Jost'), sans-serif; font-size: 0.88rem;
+}
+.nav-links a { color: var(--storm, #4A5568); text-decoration: none; transition: color 0.15s; }
+.nav-links a:hover { color: var(--indigo, #2B3A52); }
+.nav-links a.active { color: var(--indigo, #2B3A52); font-weight: 500; }
+.nav-cta {
+  background: var(--indigo, #2B3A52); color: white !important;
+  padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.82rem !important;
+}
+.nav-cta:hover { background: #1F2B3D; }
+.nav-hamburger { display: none; flex-direction: column; gap: 4px; background: none; border: none; cursor: pointer; padding: 8px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--indigo, #2B3A52); transition: all 0.2s; }
+
+/* ── MASTHEAD ── */
+.art-head { padding: 5rem 2rem 3.5rem; background: var(--limestone, #EBE8E2); }
+.art-inner { max-width: 720px; margin: 0 auto; }
+.art-head h1 {
+  font-family: var(--serif, serif); font-weight: 300;
+  font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.12;
+  letter-spacing: -0.015em; margin: 0; color: var(--indigo, #2B3A52);
+}
+.art-head h1 em { font-style: normal; color: var(--leather, #A8875A); }
+.art-standfirst {
+  font-family: var(--serif, serif); font-style: italic; font-weight: 400;
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem); line-height: 1.5;
+  color: var(--storm, #4A5568); margin: 1.5rem 0 0; max-width: 36ch;
+}
+.art-byline {
+  display: flex; gap: 1.1rem; flex-wrap: wrap; align-items: center;
+  margin-top: 2.4rem; padding-top: 1.4rem;
+  border-top: 1px solid rgba(209, 204, 195, 0.7);
+  font-family: var(--mono, monospace); font-size: 0.68rem;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--storm, #4A5568);
+}
+.art-byline .sep { opacity: 0.4; }
+
+/* ── BODY ── */
+.art-body { background: white; padding: 4.5rem 2rem 5rem; border-top: 1px solid rgba(209,204,195,0.5); }
+.art-body p {
+  font-size: 1.0625rem; font-weight: 300; line-height: 1.8;
+  color: var(--storm, #4A5568); margin: 0 0 1.5rem;
+}
+.art-body p.lede { font-size: 1.18rem; line-height: 1.75; color: var(--indigo, #2B3A52); }
+.art-body h2 {
+  font-family: var(--serif, serif); font-weight: 400;
+  font-size: clamp(1.6rem, 3.2vw, 2.15rem); line-height: 1.2;
+  letter-spacing: -0.01em; margin: 3.5rem 0 1.3rem;
+  color: var(--indigo, #2B3A52);
+}
+.art-body h2 em { font-style: normal; color: var(--leather, #A8875A); }
+.art-body strong { color: var(--indigo, #2B3A52); font-weight: 500; }
+
+.pull {
+  font-family: var(--serif, serif); font-weight: 400; font-style: italic;
+  font-size: clamp(1.35rem, 2.9vw, 1.8rem); line-height: 1.4;
+  color: var(--indigo, #2B3A52);
+  margin: 3rem 0; padding: 0 0 0 1.8rem;
+  border-left: 3px solid var(--leather, #A8875A);
+}
+
+/* term list */
+.terms { list-style: none; padding: 0; margin: 2rem 0 2.5rem; }
+.terms li {
+  padding: 1.3rem 0; border-bottom: 1px dashed rgba(209, 204, 195, 0.8);
+  font-size: 1.0625rem; font-weight: 300; line-height: 1.8;
+  color: var(--storm, #4A5568);
+}
+.terms li:first-child { border-top: 1px dashed rgba(209, 204, 195, 0.8); }
+.terms .term {
+  display: block; margin-bottom: 0.5rem;
+  font-family: var(--mono, monospace); font-size: 0.7rem;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--leather, #A8875A);
+}
+
+/* ── SIGNATURE: THE STACK ── */
+.stack { margin: 3.5rem 0; }
+.floor {
+  border: 1px solid rgba(209, 204, 195, 0.9);
+  background: var(--limestone, #EBE8E2);
+  padding: 1.1rem 1.5rem; margin-bottom: 0.5rem;
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 1.5rem; flex-wrap: wrap;
+}
+.floor .name { font-family: var(--serif, serif); font-size: 1.25rem; font-weight: 400; color: var(--indigo, #2B3A52); }
+.floor .proto { font-family: var(--mono, monospace); font-size: 0.72rem; letter-spacing: 0.1em; color: var(--storm, #4A5568); }
+.floor.missing {
+  border: 1px dashed var(--leather, #A8875A);
+  background: transparent; margin-bottom: 1.5rem;
+}
+.floor.missing .name { color: var(--leather, #A8875A); font-style: italic; }
+.floor.missing .proto { color: var(--leather, #A8875A); }
+.stack-cap {
+  font-family: var(--mono, monospace); font-size: 0.68rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--storm, #4A5568); margin: 1.2rem 0 0;
+}
+
+.endmark {
+  margin: 3.5rem 0 0; padding-top: 2rem;
+  border-top: 1px solid rgba(209, 204, 195, 0.8);
+  font-family: var(--serif, serif); font-style: italic; font-weight: 400;
+  font-size: 1.3rem; line-height: 1.5; color: var(--indigo, #2B3A52);
+}
+.backlink {
+  display: inline-block; margin-top: 3rem;
+  font-family: var(--mono, monospace); font-size: 0.72rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--leather, #A8875A); text-decoration: none;
+}
+.backlink:hover { color: var(--indigo, #2B3A52); }
+
+/* ── FOOTER ── */
+.footer { background: #1F2B3D; color: rgba(255, 255, 255, 0.7); padding: 3rem 2rem 2rem; }
+.footer-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 3rem;
+  padding-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.footer-brand {
+  font-family: var(--serif, serif); font-size: 1.6rem; font-weight: 400;
+  letter-spacing: 0.18em; color: white; margin-bottom: 0.7rem;
+}
+.footer-tagline { font-family: var(--serif, serif); font-style: italic; color: var(--leather, #C4A77D); font-size: 0.95rem; }
+.footer-col h5 {
+  font-family: var(--mono, monospace); font-size: 0.7rem;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--leather, #C4A77D); margin: 0 0 1rem;
+}
+.footer-col a {
+  display: block; color: rgba(255, 255, 255, 0.7); text-decoration: none;
+  font-size: 0.9rem; padding: 0.3rem 0; transition: color 0.15s;
+}
+.footer-col a:hover { color: white; }
+.footer-bottom {
+  max-width: 1200px; margin: 1.5rem auto 0;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+  font-size: 0.78rem; color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 900px) {
+  .nav-hamburger { display: flex; }
+  .nav-links {
+    display: none; position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--limestone, #EBE8E2); padding: 1rem 2rem;
+    flex-direction: column; gap: 0.8rem; align-items: stretch;
+    border-bottom: 1px solid rgba(209,204,195,0.4);
+  }
+  .nav-links.open { display: flex; }
+  .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
+  .art-head { padding: 4rem 1.5rem 2.5rem; }
+  .art-body { padding: 3rem 1.5rem 4rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* code blocks */
+.art-body pre {
+  background: var(--limestone, #EBE8E2); border: 1px solid rgba(209,204,195,0.9);
+  padding: 1.1rem 1.3rem; margin: 1.6rem 0 2rem; overflow-x: auto;
+  font-family: var(--mono, monospace); font-size: 0.8rem; line-height: 1.6; color: var(--indigo, #2B3A52);
+}
+.art-body code { font-family: var(--mono, monospace); font-size: 0.88em; color: var(--indigo, #2B3A52); background: rgba(209,204,195,0.35); padding: 0.05em 0.35em; border-radius: 3px; }
+.art-body pre code { background: none; padding: 0; font-size: inherit; }
+.art-body a { color: var(--leather, #A8875A); text-decoration: none; border-bottom: 1px solid rgba(168,135,90,0.4); }
+.art-body a:hover { color: var(--indigo, #2B3A52); }
+.art-body ol { padding-left: 1.3rem; margin: 0 0 1.6rem; }
+.art-body ol li { font-size: 1.0625rem; font-weight: 300; line-height: 1.8; color: var(--storm, #4A5568); margin-bottom: 0.6rem; }
+
+.art-body table { border-collapse: collapse; width: 100%; margin: 1.2rem 0 2.2rem; font-size: 0.95rem; font-weight: 300; }
+.art-body th, .art-body td { text-align: left; padding: 0.6rem 0.4rem; border-bottom: 1px solid rgba(209,204,195,0.8); vertical-align: top; color: var(--storm, #4A5568); line-height: 1.5; }
+.art-body th { font-family: var(--mono, monospace); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--leather, #A8875A); font-weight: 300; }
+.spec-meta { font-family: var(--mono, monospace); font-size: 0.72rem; letter-spacing: 0.1em; color: var(--storm, #4A5568); line-height: 2; }
+.spec-meta a { color: var(--leather, #A8875A); text-decoration: none; }
+</style>
+<script src="/vsize-nav.js" defer></script>
+</head>
+<body>
+
+<header class="art-head">
+  <div class="art-inner">
+    <div class="section-label">Specification · Draft 1</div>
+    <h1>Fit Extension <em>for UCP</em></h1>
+    <p class="art-standfirst">A vendor-namespace extension that makes footwear fit a measurable property of a catalog variant.</p>
+    <div class="art-byline">
+      <span>ai.vsize.shopping.fit</span>
+      <span class="sep">·</span>
+      <span>November 2026</span>
+      <span class="sep">·</span>
+      <span>Apache 2.0</span>
+    </div>
+  </div>
+</header>
+
+<article class="art-body">
+  <div class="art-inner">
+
+    <p class="spec-meta">
+      Name &nbsp;<code>ai.vsize.shopping.fit</code><br>
+      Schema &nbsp;<a href="https://vsize.ai/ucp/schemas/fit.json">https://vsize.ai/ucp/schemas/fit.json</a><br>
+      Extends &nbsp;<code>dev.ucp.shopping.catalog.search</code>, <code>dev.ucp.shopping.catalog.lookup</code><br>
+      Discussion &nbsp;<a href="https://github.com/Universal-Commerce-Protocol/ucp/discussions/1027">UCP #1027</a><br>
+      Background &nbsp;<a href="/insights-fit-extension.html">The missing floor, drafted</a>
+    </p>
+
+    <h2>Purpose</h2>
+    <p>An agent buying shoes on someone's behalf cannot try the shoe on. Today the Universal Commerce Protocol carries size as a label (<code>Size: EU 40</code>) and fit as free text through <code>ask</code>. Neither is something an agent can compute with. This extension makes fit a measurable property: the variant carries the dimensions of the space inside the shoe; the buyer may supply consented foot measurements; when both are present, the variant also carries a zone-by-zone assessment with an explicit confidence.</p>
+    <p class="pull">Fit is a comparison between two measurements, not a summary of reviews.</p>
+
+    <h2>Principles</h2>
+    <ul class="terms">
+      <li><span class="term">Millimetres</span>All values in millimetres. Every dimension has a tolerance and a source.</li>
+      <li><span class="term">Uncertainty</span>Every assessment has a confidence. <code>unknown</code> is a valid verdict; an assessor must not guess.</li>
+      <li><span class="term">Consent</span>The foot profile belongs to the buyer, is supplied per request, and is not stored by the business without separate consent.</li>
+      <li><span class="term">Vocabulary</span>Field names follow ISO 19409 and ISO 19410-1 for the inside of the shoe, ISO 7250 and Mondopoint (ISO 9407) for the foot.</li>
+      <li><span class="term">Exclusions</span>No reviews, no return statistics, no size conversion (ISO 19407 covers that).</li>
+    </ul>
+
+    <h2>1. The variant carries its <em>internal dimensions</em></h2>
+<pre><code>"fit": {
+  "internal_dimensions": {
+    "functional_length_mm": 257.0,
+    "ball_width_mm": 92.5,
+    "ball_girth_mm": 238.0,
+    "instep_girth_mm": 244.0,
+    "heel_width_mm": 63.0,
+    "toe_height_mm": 27.5,
+    "tolerance_mm": 2.0,
+    "source": "last_derived",
+    "vocabulary": "ISO 19409:2022 / ISO 19410-1:2022",
+    "last_reference": "opaque-id"
+  }
+}</code></pre>
+    <table>
+      <tr><th>Field</th><th>Meaning</th></tr>
+      <tr><td><code>functional_length_mm</code></td><td>Usable internal length, heel to where the longest toe is meant to reach. Required.</td></tr>
+      <tr><td><code>ball_width_mm</code>, <code>ball_girth_mm</code></td><td>Width and girth at the ball.</td></tr>
+      <tr><td><code>instep_girth_mm</code></td><td>Girth at the instep.</td></tr>
+      <tr><td><code>heel_width_mm</code></td><td>Width at the heel seat.</td></tr>
+      <tr><td><code>toe_height_mm</code>, <code>heel_height_mm</code></td><td>Toe-box height; heel height of the shoe.</td></tr>
+      <tr><td><code>tolerance_mm</code></td><td>Measurement uncertainty. Required.</td></tr>
+      <tr><td><code>source</code></td><td>One of <code>last_measured</code>, <code>last_derived</code>, <code>in_shoe_measured</code>, <code>estimated</code>. Required.</td></tr>
+      <tr><td><code>last_reference</code></td><td>Opaque id of the last, so an agent can see that two variants share one.</td></tr>
+    </table>
+
+    <h2>2. The buyer supplies a <em>foot profile</em>, with consent</h2>
+    <p>Sent in catalog <code>context</code>, which UCP defines as provisional, non-identifying buyer signals. One entry per foot; feet differ.</p>
+<pre><code>"context": {
+  "foot_profile": {
+    "feet": [
+      { "side": "left",  "length_mm": 251.0, "ball_width_mm": 94.0, "ball_girth_mm": 236.0, "instep_girth_mm": 241.0, "heel_width_mm": 62.0 },
+      { "side": "right", "length_mm": 254.5, "ball_width_mm": 95.0, "ball_girth_mm": 238.0, "instep_girth_mm": 243.0, "heel_width_mm": 62.5 }
+    ],
+    "measurement_method": "phone_scan",
+    "measured_at": "2026-10-20",
+    "tolerance_mm": 1.5,
+    "consent": true
+  }
+}</code></pre>
+
+    <h2>3. The assessment carries its <em>uncertainty</em></h2>
+    <p>Returned on the variant only when a foot profile was supplied and the assessor could compare.</p>
+<pre><code>"fit": {
+  "internal_dimensions": { "...": "..." },
+  "fit_assessment": {
+    "overall": "good",
+    "confidence": 0.78,
+    "foot_side": "right",
+    "zones": [
+      { "zone": "toe",    "delta_mm":  4.5, "verdict": "good" },
+      { "zone": "ball",   "delta_mm": -1.5, "verdict": "snug" },
+      { "zone": "instep", "delta_mm":  2.0, "verdict": "good" },
+      { "zone": "heel",   "delta_mm":  0.5, "verdict": "good" }
+    ],
+    "limiting_zone": "ball",
+    "assessed_by": "ai.vsize",
+    "method": "geometric comparison, last-derived dimensions"
+  }
+}</code></pre>
+    <p><code>overall</code> and each zone <code>verdict</code> are one of <code>good</code>, <code>snug</code>, <code>tight</code>, <code>loose</code>, <code>unknown</code>. <code>confidence</code> and <code>assessed_by</code> are required, so an agent always knows how sure the assessment is and who made it.</p>
+
+    <h2>Non-goals</h2>
+    <ul class="terms">
+      <li>No reviews, keep rates or return statistics.</li>
+      <li>No size-system conversion.</li>
+      <li>No storage of foot data on the business side.</li>
+      <li>Footwear only in this draft. The pattern may transfer to apparel; that is out of scope here.</li>
+    </ul>
+
+    <h2>Open questions</h2>
+    <ol>
+      <li>Do <code>internal_dimensions</code> belong on the catalog variant, or in a separate capability?</li>
+      <li>May <code>foot_profile</code> travel in catalog <code>context</code>, or does buyer measurement data need its own consent path, like identity linking?</li>
+      <li>May <code>vocabulary</code> reference an externally governed, paid standard, the question UCP #971 raises for print?</li>
+    </ol>
+
+    <h2>Status and path</h2>
+    <p>This is a draft published under a vendor namespace, as the UCP contribution guide recommends for emerging use cases. If a second party, a merchant or a scanning provider, wants to expose or consume these fields, the intent is to propose <code>dev.ucp.shopping.fit</code> through an Enhancement Proposal to the Shopping Tech Council. Comments are welcome in <a href="https://github.com/Universal-Commerce-Protocol/ucp/discussions/1027">UCP discussion #1027</a>.</p>
+
+    <p class="endmark">Draft 1, November 2026. Published by VSIZE, Novainvent AB, Sweden. Schema licensed under Apache 2.0, in line with UCP.</p>
+
+    <a class="backlink" href="/insights.html">← All insights</a>
+
+  </div>
+</article>
+
+<script>
+(function() {
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (!isMobile) {
+    document.querySelectorAll('[data-scan-link]').forEach(link => {
+      link.setAttribute('href', '/#scan');
+      link.removeAttribute('target');
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

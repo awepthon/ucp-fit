@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vsize.ai/ucp/schemas/fit.json",
+  "name": "ai.vsize.shopping.fit",
+  "title": "Fit Extension (draft)",
+  "description": "Extends Catalog Search and Catalog Lookup with measurable footwear fit. A variant carries its internal dimensions; the buyer may supply a consented foot profile in request context; when both are present the variant also carries a zone-by-zone fit assessment with an explicit confidence. Fit is a comparison between two measurements, not a summary of reviews. Draft, vendor namespace; see spec for status.",
+  "spec": "https://vsize.ai/ucp/fit",
+  "extends": ["dev.ucp.shopping.catalog.search", "dev.ucp.shopping.catalog.lookup"],
+  "$defs": {
+    "mm": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Length in millimetres."
+    },
+    "signed_mm": {
+      "type": "number",
+      "description": "Signed difference in millimetres. Positive means the shoe has more room than the foot in this zone; negative means less."
+    },
+    "dimension_source": {
+      "type": "string",
+      "enum": ["last_measured", "last_derived", "in_shoe_measured", "estimated"],
+      "description": "Provenance of the internal dimensions. `last_measured`: the last was measured directly. `last_derived`: derived from the last and the shoe's construction. `in_shoe_measured`: measured inside the finished shoe. `estimated`: inferred without direct measurement. Agents SHOULD treat `estimated` differently from the other three."
+    },
+    "internal_dimensions": {
+      "type": "object",
+      "title": "Internal Dimensions",
+      "description": "Dimensions of the space inside the shoe for this variant, in millimetres. Field names follow the last and in-shoe measurement vocabulary of ISO 19409 and ISO 19410-1 where a corresponding term exists. All fields except `functional_length_mm`, `tolerance_mm` and `source` are optional; a Business publishes what it can measure.",
+      "additionalProperties": true,
+      "required": ["functional_length_mm", "tolerance_mm", "source"],
+      "properties": {
+        "functional_length_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Usable internal length from heel to the point the longest toe is intended to reach, excluding design allowance at the toe."
+        },
+        "total_length_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Total internal length including design allowance at the toe."
+        },
+        "ball_width_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Internal width across the ball (metatarsal heads)."
+        },
+        "ball_girth_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Internal girth around the ball."
+        },
+        "instep_girth_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Internal girth around the instep."
+        },
+        "heel_width_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Internal width across the heel seat."
+        },
+        "toe_height_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Internal height at the toe box."
+        },
+        "heel_height_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Heel height of the shoe, which affects how the foot sits in the other zones."
+        },
+        "tolerance_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Expected measurement uncertainty applying to the dimensions above, in millimetres."
+        },
+        "source": {
+          "$ref": "#/$defs/dimension_source"
+        },
+        "vocabulary": {
+          "type": "string",
+          "description": "Human-readable reference to the measurement vocabulary used, e.g. 'ISO 19409:2022 / ISO 19410-1:2022'. Informational; see spec for the open question on externally governed vocabularies."
+        },
+        "last_reference": {
+          "type": "string",
+          "description": "Opaque, stable identifier for the last this variant was built on, in the Business's or assessor's namespace. Lets an agent recognise that two variants share a last."
+        }
+      }
+    },
+    "foot_measurement": {
+      "type": "object",
+      "title": "Foot Measurement",
+      "description": "Measurements of one foot, in millimetres. Field names follow ISO 7250 basic body measurements and the Mondopoint convention (ISO 9407) where a corresponding term exists. Supplied by the buyer side; provisional and non-identifying on its own.",
+      "additionalProperties": true,
+      "required": ["side", "length_mm"],
+      "properties": {
+        "side": {
+          "type": "string",
+          "enum": ["left", "right"],
+          "description": "Which foot."
+        },
+        "length_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Foot length, heel to longest toe."
+        },
+        "ball_width_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Foot width across the ball."
+        },
+        "ball_girth_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Girth around the ball."
+        },
+        "instep_girth_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Girth around the instep."
+        },
+        "heel_width_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Width across the heel."
+        },
+        "toe_height_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Height of the toes above the standing surface."
+        }
+      }
+    },
+    "foot_profile": {
+      "type": "object",
+      "title": "Foot Profile",
+      "description": "A buyer's consented foot measurements, supplied per request in catalog `context`. The profile belongs to the buyer. A Business MUST NOT persist it beyond the request without separate, explicit consent, and MUST NOT use it to identify the buyer.",
+      "additionalProperties": true,
+      "required": ["feet", "consent"],
+      "properties": {
+        "feet": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/foot_measurement" },
+          "description": "One entry per foot. Feet differ; agents SHOULD send both when available."
+        },
+        "measurement_method": {
+          "type": "string",
+          "description": "How the measurements were taken. Well-known values: `phone_scan`, `in_store_scanner`, `manual`, `unknown`. Other values MAY be used."
+        },
+        "measured_at": {
+          "type": "string",
+          "format": "date",
+          "description": "Date of measurement (ISO 8601). Feet change; assessors MAY lower confidence for old measurements."
+        },
+        "tolerance_mm": {
+          "$ref": "#/$defs/mm",
+          "description": "Expected measurement uncertainty of the foot measurements."
+        },
+        "consent": {
+          "type": "boolean",
+          "const": true,
+          "description": "Asserts that the buyer has consented to these measurements being used for fit assessment in this request. MUST be true when the profile is present."
+        }
+      }
+    },
+    "fit_verdict": {
+      "type": "string",
+      "enum": ["good", "snug", "tight", "loose", "unknown"],
+      "description": "Assessment of fit. `unknown` is a valid and expected value when data is insufficient; an assessor MUST NOT guess."
+    },
+    "zone_assessment": {
+      "type": "object",
+      "title": "Zone Assessment",
+      "description": "Fit in one zone of the foot.",
+      "additionalProperties": true,
+      "required": ["zone", "verdict"],
+      "properties": {
+        "zone": {
+          "type": "string",
+          "description": "Zone of the foot. Well-known values: `toe`, `ball`, `instep`, `heel`. Other values MAY be used."
+        },
+        "delta_mm": {
+          "$ref": "#/$defs/signed_mm",
+          "description": "Shoe minus foot in this zone, after any assessor-specific allowance."
+        },
+        "verdict": { "$ref": "#/$defs/fit_verdict" },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Assessor's confidence in this zone's verdict, 0 to 1."
+        }
+      }
+    },
+    "fit_assessment": {
+      "type": "object",
+      "title": "Fit Assessment",
+      "description": "Comparison of a foot profile with a variant's internal dimensions. Returned only when both are available. Indicative for the buyer; the agent decides how to act on it.",
+      "additionalProperties": true,
+      "required": ["overall", "confidence", "assessed_by"],
+      "properties": {
+        "overall": { "$ref": "#/$defs/fit_verdict" },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Assessor's confidence in the overall verdict, 0 to 1. MUST be present. Low confidence with a verdict is preferable to a confident guess."
+        },
+        "foot_side": {
+          "type": "string",
+          "enum": ["left", "right", "both"],
+          "description": "Which foot the assessment refers to. When both were supplied, assessors SHOULD assess the larger foot or report `both` with the limiting zone."
+        },
+        "zones": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/zone_assessment" },
+          "description": "Zone-by-zone breakdown."
+        },
+        "limiting_zone": {
+          "type": "string",
+          "description": "The zone that most constrains the overall verdict."
+        },
+        "assessed_by": {
+          "type": "string",
+          "description": "Reverse-domain name of the party that produced the assessment, e.g. `ai.vsize`. Lets an agent decide whose assessments to trust."
+        },
+        "method": {
+          "type": "string",
+          "description": "Short, human-readable description of the assessment method, e.g. 'geometric comparison, last-derived dimensions'."
+        }
+      }
+    },
+    "fit": {
+      "type": "object",
+      "title": "Fit",
+      "description": "Fit information on a catalog variant.",
+      "additionalProperties": true,
+      "properties": {
+        "internal_dimensions": { "$ref": "#/$defs/internal_dimensions" },
+        "fit_assessment": {
+          "$ref": "#/$defs/fit_assessment",
+          "description": "Present only when the request carried a `foot_profile` and the assessor could compare."
+        }
+      }
+    },
+    "fit_context": {
+      "description": "Catalog context extended with an optional foot profile.",
+      "allOf": [
+        { "$ref": "https://ucp.dev/schemas/common/types/context.json" },
+        {
+          "type": "object",
+          "properties": {
+            "foot_profile": { "$ref": "#/$defs/foot_profile" }
+          }
+        }
+      ]
+    },
+    "fit_variant": {
+      "description": "A catalog variant with fit.",
+      "allOf": [
+        { "$ref": "https://ucp.dev/schemas/shopping/types/variant.json" },
+        {
+          "type": "object",
+          "properties": {
+            "fit": { "$ref": "#/$defs/fit" }
+          }
+        }
+      ]
+    },
+    "fit_product": {
+      "description": "A catalog product whose variants carry fit.",
+      "allOf": [
+        { "$ref": "https://ucp.dev/schemas/shopping/types/product.json" },
+        {
+          "type": "object",
+          "properties": {
+            "variants": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/fit_variant" }
+            }
+          }
+        }
+      ]
+    },
+    "fit_search_request": {
+      "allOf": [
+        { "$ref": "https://ucp.dev/schemas/shopping/catalog_search.json#/$defs/search_request" },
+        {
+          "type": "object",
+          "properties": {
+            "context": { "$ref": "#/$defs/fit_context" }
+          }
+        }
+      ]
+    },
+    "fit_search_response": {
+      "allOf": [
+        { "$ref": "https://ucp.dev/schemas/shopping/catalog_search.json#/$defs/search_response" },
+        {
+          "type": "object",
+          "properties": {
+            "products": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/fit_product" }
+            }
+          }
+        }
+      ]
+    },
+    "fit_lookup_request": {
+      "allOf": [
+        { "$ref": "https://ucp.dev/schemas/shopping/catalog_lookup.json#/$defs/lookup_request" },
+        {
+          "type": "object",
+          "properties": {
+            "context": { "$ref": "#/$defs/fit_context" }
+          }
+        }
+      ]
+    },
+    "fit_lookup_response": {
+      "allOf": [
+        { "$ref": "https://ucp.dev/schemas/shopping/catalog_lookup.json#/$defs/lookup_response" },
+        {
+          "type": "object",
+          "properties": {
+            "products": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/fit_product" }
+            }
+          }
+        }
+      ]
+    },
+    "dev.ucp.shopping.catalog.search": {
+      "description": "Catalog search composition with fit (extends dev.ucp.shopping.catalog.search).",
+      "$defs": {
+        "search_request": { "$ref": "#/$defs/fit_search_request" },
+        "search_response": { "$ref": "#/$defs/fit_search_response" }
+      }
+    },
+    "dev.ucp.shopping.catalog.lookup": {
+      "description": "Catalog lookup composition with fit (extends dev.ucp.shopping.catalog.lookup).",
+      "$defs": {
+        "lookup_request": { "$ref": "#/$defs/fit_lookup_request" },
+        "lookup_response": { "$ref": "#/$defs/fit_lookup_response" }
+      }
+    }
+  }
+}
